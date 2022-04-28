@@ -136,7 +136,6 @@ def concatenate_clustering_results(workdir_path):
         print('Not all files processed. Check again later.')
         return False
 
-
 def clean_clustering_partial_data(workdir_path):
     """Clean directory with single protein dataframes. Saves space.
 
