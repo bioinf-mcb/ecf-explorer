@@ -9,7 +9,7 @@ def setup_dir_tree(input_table_filepath):
 
 	ecf-explorer
 	|
-	|-- input (copy input files here)
+	|-- input (copy input files here, both all-vs-all and features tables)
 	|-- intermediate (df filtered by parameters and single protein dfs)
 	|-- output (summary dfs with detected clusters/ECFs and their statistics)
 	|-- plots (save plots here)
@@ -27,6 +27,7 @@ def setup_dir_tree(input_table_filepath):
 	table_dirpath = '/'.join(input_table_filepath.split('/')[:-1])
 
 	for dir_name in ['ecf-explorer', 'ecf-explorer/input',
+					 'ecf-explorer/input/annots',
 					 'ecf-explorer/intermediate',
 					 'ecf-explorer/intermediate/protein_dfs',
 					 'ecf-explorer/output',
