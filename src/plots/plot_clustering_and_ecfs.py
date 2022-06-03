@@ -129,8 +129,6 @@ def plot_features(selected_features_data, protein_id, ax_feat, feature_colors):
         ax_feat.text(0, fid-len(selected_features_data)*0.04,
         feature_name, fontsize=8, color=feature_colors[fid])
 
-    return 0
-
 def plot_alignment_selected(workdir_path, selected_reprseq_data,
     selected_features_data, save_figure=False):
     """Plot alignment of hhblits hits to a protein. Each color annotates

@@ -28,6 +28,7 @@ def setup_dir_tree(input_table_filepath):
 
 	for dir_name in ['ecf-explorer', 'ecf-explorer/input',
 					 'ecf-explorer/input/annots',
+					 'ecf-explorer/input/annots/hhrepid/',
 					 'ecf-explorer/intermediate',
 					 'ecf-explorer/intermediate/protein_dfs',
 					 'ecf-explorer/output',

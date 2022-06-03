@@ -56,8 +56,8 @@ def load_features_data(workdir_path, features_to_load):
     should be stored in csv format. Each file should represent single feature.
     The csv file should have following columns:
     qname - the id of sequence where feature was annotated
-    sstrat - start position of feature
-    send - end position of feature
+    qstart - start position of feature
+    qend - end position of feature
     annot - description of the feature
 
     Optionally, file can store additional columns that provide additional data
