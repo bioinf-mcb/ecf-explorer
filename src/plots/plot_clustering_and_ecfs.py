@@ -122,7 +122,7 @@ def plot_features(selected_features_data, protein_id, ax_feat, feature_colors):
         for i, hit in feature_df[feature_df['qname'] \
         == protein_id].iterrows():
             ax_feat.plot([hit['qstart'], hit['qend']], [fid, fid],
-            color=feature_colors[fid], alpha=0.5, linewidth=3)
+            color=feature_colors[fid], alpha=0.3, linewidth=3)
         # make space on the plot for feature not detected in a protein
         if feature_df[feature_df['qname'] == protein_id].empty:
             ax_feat.plot([0, 0], [fid, fid], color='white', alpha=1.0)

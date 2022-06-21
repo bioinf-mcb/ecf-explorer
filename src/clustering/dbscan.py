@@ -77,7 +77,7 @@ def calculate_cluster_stats(protein_df_sorted):
 
     def calculate_average_hits_overlap(cluster):
         """Calculate average of overlap between all hits. Overlap is defined as
-        size of intersecion divided by size of union of two sets, each created
+        size of intersection divided by size of union of two sets, each created
         from coords of given hit on query. If there is only one hit in a cluster
         (can happen with min_sample=1 in DBSCAN), 0.0 is returned.
 
@@ -116,7 +116,7 @@ def calculate_cluster_stats(protein_df_sorted):
     def calculate_ECF_span(cluster):
         """Calculate the span of ECF defined as difference between largest value
         of qend position and smallest value of qstart position from all hits
-        within the cluster.
+        within the cluster. Returns those start/stop positions too.
 
         Parameters:
         -----------
@@ -128,9 +128,14 @@ def calculate_cluster_stats(protein_df_sorted):
         --------
         int
             The number of positions that comprise ECF span.
+        int
+            Position desginated as start of ECF.
+        int
+            Position desginated as end of ECF.
         """
-
-        return cluster.qend.max() - cluster.qstart.min() + 1
+        ecf_start = cluster.qstart.min()
+        ecf_stop = cluster.qend.max()
+        return ecf_stop - ecf_start + 1, ecf_start, ecf_stop
 
     def calculate_avg_hit_len_to_ecf_span(cluster, ecf_span):
         """Calculate ratio of average hit length to ECF span.
@@ -184,27 +189,28 @@ def calculate_cluster_stats(protein_df_sorted):
         return pd.DataFrame(columns=['qname', 'cluster', 'nb_hits',
                                      'avg_hits_overlap', 'ecf_span',
                                      'avg_hit_len_to_ecf_span',
-                                     'span_to_qlength'])
+                                     'span_to_qlength', 'ecf_start',
+                                     'ecf_stop'])
 
     protein_cluster_stats = {}
     protein_id            = protein_df_sorted['qname'].tolist()[0]
 
     for n, (cid, cluster) in enumerate(protein_df_sorted.groupby(['cluster'])):
         avg_hits_overlap        = calculate_average_hits_overlap(cluster)
-        ecf_span                = calculate_ECF_span(cluster)
+        ecf_span, ecf_start, ecf_stop = calculate_ECF_span(cluster)
         avg_hit_len_to_ecf_span = calculate_avg_hit_len_to_ecf_span(cluster,
                                                                     ecf_span)
         span_to_qlength         = calculate_ecf_span_to_query_length(cluster,
                                                                     ecf_span)
 
         stats = [protein_id, cid, len(cluster), avg_hits_overlap, ecf_span,
-                 avg_hit_len_to_ecf_span, span_to_qlength ]
+                 avg_hit_len_to_ecf_span, span_to_qlength, ecf_start, ecf_stop]
         protein_cluster_stats[n] = stats
 
     protein_stat_df = pd.DataFrame.from_dict(protein_cluster_stats,
                                    orient='index', columns=['qname', 'cluster',
                                    'nb_hits', 'avg_hits_overlap', 'ecf_span',
                                    'avg_hit_len_to_ecf_span',
-                                   'span_to_qlength'])
+                                   'span_to_qlength', 'ecf_start', 'ecf_stop'])
 
     return protein_stat_df

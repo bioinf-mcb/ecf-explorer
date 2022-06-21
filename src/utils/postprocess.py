@@ -1,6 +1,6 @@
 import pandas as pd
 
-def load_clustering_results(workdir_path):
+def load_clustering_results(workdir_path, mode):
     """Load the results of clustering of hhblits hits to proteins. Input file
     should be stored in csv format.
 
@@ -8,14 +8,25 @@ def load_clustering_results(workdir_path):
     -----------
     workdir_path : string
         Path to the working directory.
+    mode : string
+        Type of data to be loaded. Options are:
+        'clusters' - all vs all hits table with cluster id added to each entry
+        'stats' - table of clusters' statistics
 
     Returns:
     --------
     pd.DataFrame
         Pandas dataframe with loaded data.
     """
+    if mode == 'clusters':
+        results_filename = 'reprseq-all-clust.txt'
+    elif mode == 'stats':
+        results_filename = 'reprseq-all-stat.txt'
+    else:
+        print('Unknown mode. Options are: "clusters" and "stats".')
+        return pd.DataFrame()
     results_filepath  = workdir_path \
-    + '/ecf-explorer/output/reprseq-all-clust.txt'
+    + '/ecf-explorer/output/' + results_filename
     clustering_results = pd.read_csv(results_filepath, sep=',')
 
     return clustering_results
@@ -51,7 +62,7 @@ def select_reprseqs_to_display(clustering_results, reprseqs_to_display):
 
     return select_reprseq_data
 
-def load_features_data(workdir_path, features_to_load):
+def load_features_data(workdir_path, features_to_load, sep=','):
     """Load the results of annotating repsreq with various tools. Input files
     should be stored in csv format. Each file should represent single feature.
     The csv file should have following columns:
@@ -71,6 +82,8 @@ def load_features_data(workdir_path, features_to_load):
         List of features that should be loaded. Each feature will be loaded
         from the file with name pattern <feature-name>.txt. The directory to
         store files is input/annots.
+    sep : string
+        Separator to be used when parsing tables. Comma by default.
 
     Returns:
     --------
@@ -82,7 +95,7 @@ def load_features_data(workdir_path, features_to_load):
     for feature in features_to_load:
         ffilepath = workdir_path \
         + '/ecf-explorer/input/annots/{}.txt'.format(feature)
-        fdata = pd.read_csv(ffilepath, sep=',')
+        fdata = pd.read_csv(ffilepath, sep=sep)
         features_data[feature] = fdata
 
     return features_data

@@ -38,6 +38,57 @@ def setup_dir_tree(input_table_filepath):
 		except FileExistsError:
 			print('/' + dir_name + '/ directory already set up')
 
+def get_repeat_positions(data):
+	"""Get all positions annotated as containing repeats in a given reprseq.
+
+	Parameters:
+	-----------
+	data : pandas.DataFrame
+		Dataframe containing data parsed from HHrepid output files regarding
+		individual repeats. There is always only one row describing
+        each repeat. This dataframe contains data reagrding only one reprseq.
+
+	Returns:
+	--------
+	set
+		Set of positions within reprseq that are annotated with at least one
+		repeat.
+	"""
+	pos_with_repeat = []
+	for i, repeat in data.iterrows():
+		repeat_pos = list(range(repeat['qstart'], repeat['qend']+1))
+		pos_with_repeat += repeat_pos
+
+	return set(pos_with_repeat)
+
+def check_if_repeat(hit, reprseq2repeat):
+	"""Check if there is a repeat within given hit.
+
+	Parameters:
+	-----------
+	hit : pandas.DataFrame
+		DataFrame containing data regarding single hit to query reprseq.
+	reprseq2repeat : dict
+		Dictionary mapping reprseqs with the set of repeat-containing positions
+		within this reprseq.
+
+	Returns:
+	--------
+	bool
+		Return True if there is a repeat within hit and False if there is not.
+	"""
+	hit_span = set(list(range(hit.qstart, hit.qend+1)))
+	if hit['qname'] in reprseq2repeat.keys():
+		repeats_span = reprseq2repeat[hit['qname']]
+	else:
+		repeats_span = set()
+	common_positions = hit_span.intersection(repeats_span)
+
+	if common_positions:
+		return True
+	else:
+		return False
+
 def load_and_filter_data(input_table_filepath, filters_used, filters_params):
 	"""Load data from the table, filter according to parameters and return as
 	a new dataframe. Additionally, save as a new dataframe in the /intermediate
@@ -60,21 +111,23 @@ def load_and_filter_data(input_table_filepath, filters_used, filters_params):
 		'cov-both' - hit coverage defined as both fraction of query and subject
 		covered by a hit, i.e. both coverages must be met for hit to pass;
 		'hit-len' - length that hit coveres on the query protein;
+		'repeats' - exclude hits containing detected repeats;
 	filters_params : dict
 		Dictionary of values to be applied to filters used. To use add
 		key-value pair to dict, e.g. {'prob_threshold':95.0}. Available options:
 		'prob_threshold' <float> - minimal probability for hit to pass;
-		'eval_threshold' <float> - minimal evalue for hit to pass;
+		'eval_threshold' <float> - maxminal evalue for hit to pass;
 		'coverage_cutoff' <float> - minimal coverage for hit to pass, this
 		parameter applies to both cov and cov-both options;
 		'min_hit_len' <int> - minimal length that hit coveres on the query
 		protein;
+		'repeat_pval' <float> - maximum p-value for repeat to be considered;
 
 	Returns:
 	--------
-	pd.DataFrame
+	pandas.DataFrame
 		Pandas dataframe filtered according to the selected parameters. The
-		dataframe is also saved in the /intermediate direcotry.
+		dataframe is also saved in the /intermediate directory.
 	"""
 	###  setup paths, copy input and load data
 	input_table_dirpath  = '/'.join(input_table_filepath.split('/')[:-1]) \
@@ -128,6 +181,21 @@ def load_and_filter_data(input_table_filepath, filters_used, filters_params):
 		!= hhr_self['qlength']]
 		hhr_table         = hhr_table[hhr_table['sname'] != hhr_table['qname']]
 		hhr_table         = pd.concat([hhr_self_not_full, hhr_table])
+	# exclude hits containing repeats
+	if 'repeats' in filters_used:
+		repeats_filepath = '/'.join(input_table_filepath.split('/')[:-1]) \
+		+ '/ecf-explorer/input/annots/hhrepid.txt'
+		repeats_table = pd.read_csv(repeats_filepath, sep=',')
+
+		repeats_table = repeats_table[repeats_table['pval'] \
+		<= filters_params['repeat_pval']]
+
+		reprseq2repeat = {qname:get_repeat_positions(data) for qname, data in \
+						  repeats_table.groupby('qname')}
+		hhr_table['repeat'] = \
+		hhr_table.apply(lambda hit: check_if_repeat(hit, reprseq2repeat),
+						axis=1)
+		hhr_table = hhr_table[hhr_table['repeat'] == False]
 
 	### save to intermediate dir
 	hhr_table.to_csv(output_table_dirpath + input_filename.split('.')[0] \
