@@ -61,8 +61,10 @@ def prepare_coloring(unique_labels):
     """
     if len(unique_labels) <= 10:
         colors = plt.get_cmap('tab10').colors
-    else:
+    elif len(unique_labels) <= 20:
         colors = plt.get_cmap('tab20').colors
+    else:
+        colors = plt.get_cmap('tab20').colors + plt.get_cmap('tab20b').colors
     color2label = {}
     for k, col in zip(unique_labels, colors):
         color2label[k] = col
