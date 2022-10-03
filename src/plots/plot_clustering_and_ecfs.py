@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 def setup_figure(protein_len, protein_id):
     """Setup figure, its axes and details (axes limits, labels, titles).
@@ -20,17 +21,23 @@ def setup_figure(protein_len, protein_id):
     ax_aln : matplotlib.axes._axes.Axes
         Matplolib object representing hits alignment subplot.
     """
-    fig = plt.figure(figsize=(16,10))
-    ax_feat = fig.add_axes([0.05, 0.85, 0.9, 0.1])
+    # fig = plt.figure(figsize=(16,10))
+    fig = plt.figure(figsize=(16,6))
+    # ax_feat = fig.add_axes([0.05, 0.85, 0.9, 0.1])
+    ax_feat = fig.add_axes([0.05, 0.9, 0.9, 0.1])
     ax_aln = fig.add_axes([0.05, 0.05, 0.9, 0.75])
 
     ax_feat.set_title('Features alignment to the sequence [' \
     + protein_id + ']', fontsize=16)
     ax_feat.set_xlim(0,protein_len+10)
+    ax_feat.yaxis.set_major_locator(ticker.NullLocator())
     ax_aln.set_title('Hits alignment to the sequence [' \
-    + protein_id + ']', fontsize=16)
+    + protein_id + ']', fontsize=18)
     ax_aln.set_xlim(0,protein_len+10)
-    ax_aln.set_xlabel('Query sequence [' + protein_id + ']', fontsize=14)
+    ax_aln.set_xlabel('Query sequence [' + protein_id + ']', fontsize=18)
+
+    ax_aln.tick_params(axis='x', labelsize=18)
+    ax_aln.tick_params(axis='y', labelsize=14)
 
     return fig, ax_feat, ax_aln
 
@@ -126,8 +133,9 @@ def plot_features(selected_features_data, protein_id, ax_feat, feature_colors):
         # make space on the plot for feature not detected in a protein
         if feature_df[feature_df['qname'] == protein_id].empty:
             ax_feat.plot([0, 0], [fid, fid], color='white', alpha=1.0)
-        ax_feat.text(0, fid-len(selected_features_data)*0.04,
-        feature_name, fontsize=8, color=feature_colors[fid])
+        # ax_feat.text(0, fid-len(selected_features_data)*0.04,
+        ax_feat.text(10, fid+0.01,
+        'PFAM', fontsize=20, color=feature_colors[fid])
 
 def plot_alignment_selected(workdir_path, selected_reprseq_data,
     selected_features_data, save_figure=False):
@@ -173,6 +181,131 @@ def plot_alignment_selected(workdir_path, selected_reprseq_data,
         color2label, feature_colors = prepare_coloring(unique_labels)
         # plot alignments
         plot_hits(df, color2label, ax_aln, protein_id)
+        # check if features are to be plotted and do it if yes
+        if selected_features_data:
+            plot_features(selected_features_data, protein_id, ax_feat,
+                          feature_colors)
+        plt.show()
+
+        if save_figure:
+            save_filename = workdir_path + '/ecf-explorer/plots/' + protein_id \
+            + '.png'
+            fig.savefig(save_filename)
+        plt.close()
+#################################################
+### QUICK-FIX FUNCTIONS FOR FAMILIES PLOTTING ###
+#################################################
+
+def setup_figure_families(protein_len, protein_id):
+    """Setup figure, its axes and details (axes limits, labels, titles).
+
+    Parameters:
+    -----------
+    protein_len : int
+        The length of a query protein plotted.
+    protein_id : string
+        The identifier of a query protein plotted.
+
+    Returns:
+    --------
+    fig : matplotlib.figure.Figure
+        Matplotlib object representing figure (both hit alignment and features
+        plots).
+    ax_feat : matplotlib.axes._axes.Axes
+        Matplolib object representing features subplot.
+    ax_aln : matplotlib.axes._axes.Axes
+        Matplolib object representing hits alignment subplot.
+    """
+    # fig = plt.figure(figsize=(16,10))
+    fig = plt.figure(figsize=(16,6))
+    # ax_feat = fig.add_axes([0.05, 0.85, 0.9, 0.1])
+    ax_aln = fig.add_axes([0.05, 0.05, 0.9, 0.75])
+
+    ax_aln.set_title('Hits alignment to the sequence [' \
+    + protein_id + ']', fontsize=18)
+    ax_aln.set_xlim(0,protein_len+10)
+    ax_aln.set_xlabel('Query sequence [' + protein_id + ']', fontsize=18)
+
+    ax_aln.tick_params(axis='x', labelsize=18)
+    ax_aln.tick_params(axis='y', labelsize=14)
+
+    return fig, ax_aln
+
+def plot_hits_family(df, color2label, ax_aln, protein_id):
+    """Plot hits alignment to the selected protein.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        Pandas dataframe with results of all vs all hhblits search of
+        representative proteins that was already processed with clustering.
+        Filtered, so it contains only data regarding single protein to be
+        plotted.
+    color2label : dict
+        Dictionary mapping cluster identifier with assigned color. The color is
+        represented as 3-element tuple (RGB coding).
+    ax_aln : matplotlib.axes._axes.Axes
+        Matplolib object representing hits alignment subplot.
+    protein_id : string
+        The identifier of a query protein plotted.
+
+    Returns:
+    --------
+    """
+    for n, hit in enumerate(df.iterrows()):
+        lstyle = "solid"
+        if protein_id == hit[1]['sname']:
+            color_align = 'black'
+        else:
+            color_align = color2label[hit[1]['family']]
+        ax_aln.plot([hit[1]['qstart'], hit[1]['qend']], [n,n],
+        color=color_align, linestyle=lstyle)
+
+def plot_alignment_selected_families(workdir_path, selected_reprseq_data,
+    selected_features_data, unique_labels, save_figure=False):
+    """Plot alignment of hhblits hits to a protein. Each color annotates
+    different ECF. ECFs are annotated by considering each cluster as a separate
+    ECF.
+    Dashdot lines indicate hits to multi-hit proteins, i.e. proteins that
+    are present in hit set more than once, each hit indicating different region
+    of protein.
+    Black lines indicate self-hits, i.e. query and subject protein is the same.
+
+    Parameters:
+    -----------
+    workdir_path : string
+        Path to the working directory.
+    selected_reprseq_data : pd.DataFrame
+        Pandas dataframe with results of all vs all hhblits search of
+        representative proteins that was already processed with clustering and
+        filtered so only results of selected representative proteins are
+        present.
+    selected_features_data : dict
+        Dictionary where keys are names of features and values are pandas
+        dataframes corresponding to these features. The dataframes are filtered
+        and contain only data regarding only selected proteins.
+    save_figure : bool
+        Switch on/off saving figure. The figure will be saved into plots/
+        directory. The name of the figure will be reprseq<id>.png.
+
+    Returns:
+    --------
+    """
+    # prepare coloring for alignment & features plot
+    color2label, feature_colors = prepare_coloring(unique_labels)
+    markers = [plt.Line2D([0,0],[0,0],color=color, marker='o', linestyle='') for color in color2label.values()]
+    plt.legend(markers, color2label.keys(), numpoints=1)
+    # group results by representative sequence
+    reprseq_by_qname = selected_reprseq_data.groupby('qname')
+
+    for i, df in reprseq_by_qname:
+        protein_id    = df['qname'].tolist()[0]
+        protein_len   = df['qlength'].tolist()[0]
+
+        # create figure, add axes and labels
+        fig, ax_aln = setup_figure_families(protein_len, protein_id)
+        # plot alignments
+        plot_hits_family(df, color2label, ax_aln, protein_id)
         # check if features are to be plotted and do it if yes
         if selected_features_data:
             plot_features(selected_features_data, protein_id, ax_feat,

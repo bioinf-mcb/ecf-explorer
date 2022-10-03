@@ -28,9 +28,11 @@ def setup_dir_tree(input_table_filepath):
 
 	for dir_name in ['ecf-explorer', 'ecf-explorer/input',
 					 'ecf-explorer/input/annots',
+					 'ecf-explorer/input/all-vs-all',
 					 'ecf-explorer/input/annots/hhrepid/',
 					 'ecf-explorer/intermediate',
 					 'ecf-explorer/intermediate/protein_dfs',
+					 'ecf-explorer/intermediate/qecf_msa',
 					 'ecf-explorer/output',
 					 'ecf-explorer/plots', 'ecf-explorer/scripts']:
 		try:
