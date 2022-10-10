@@ -319,10 +319,10 @@ def plot_alignment_selected_families(workdir_path, selected_reprseq_data,
             # check if need to set save subdir and do so if needed
             if save_subdir:
                 try:
-        			os.mkdir(workdir_path + '/ecf-explorer/plots/' \
+                    os.mkdir(workdir_path + '/ecf-explorer/plots/' \
                     + save_subdir)
-        		except FileExistsError:
-        			pass
+                except FileExistsError:
+                    pass
 
             save_filename = workdir_path + '/ecf-explorer/plots/' \
             + save_subdir + '/' + protein_id + '.png'
