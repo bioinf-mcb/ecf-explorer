@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import os
 
 def setup_figure(protein_len, protein_id):
     """Setup figure, its axes and details (axes limits, labels, titles).
@@ -264,7 +265,7 @@ def plot_hits_family(df, color2label, ax_aln, protein_id):
         color=color_align, linestyle=lstyle)
 
 def plot_alignment_selected_families(workdir_path, selected_reprseq_data,
-    selected_features_data, unique_labels, save_figure=False):
+    selected_features_data, unique_labels, save_figure=False, save_subdir=''):
     """Plot alignment of hhblits hits to a protein. Each color annotates
     different ECF. ECFs are annotated by considering each cluster as a separate
     ECF.
@@ -315,7 +316,15 @@ def plot_alignment_selected_families(workdir_path, selected_reprseq_data,
         plt.show()
 
         if save_figure:
-            save_filename = workdir_path + '/ecf-explorer/plots/' + protein_id \
-            + '.png'
+            # check if need to set save subdir and do so if needed
+            if save_subdir:
+                try:
+        			os.mkdir(workdir_path + '/ecf-explorer/plots/' \
+                    + save_subdir)
+        		except FileExistsError:
+        			pass
+
+            save_filename = workdir_path + '/ecf-explorer/plots/' \
+            + save_subdir + '/' + protein_id + '.png'
             fig.savefig(save_filename)
         plt.close()
