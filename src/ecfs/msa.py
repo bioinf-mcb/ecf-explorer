@@ -1,6 +1,7 @@
 import numpy as np
 from Bio import SeqIO
 from csb.bio.io import HHOutputParser
+from os.path import exists
 
 def get_qecf_hits(clustering_results, qname, cluster_id):
     """Extract hits comprising given qECF.
@@ -229,22 +230,26 @@ def save_qecf_as_msa(workdir_path, clustering_stats, clustering_results,
     for i, qecf in clustering_stats.iterrows():
         qname      = qecf['qname']
         cluster_id = qecf['cluster']
-        queryseq   = str(repr_seqs[qname].seq)
-        ecf_hits   = get_qecf_hits(clustering_results, qname, cluster_id)
+        output_a3m_filepath = msa_output_dirpath + 'ecf_' + qname + '_' \
+                              + str(cluster_id) + '.a3m'
+        # check if file already processed
+        if not exists(output_a3m_filepath):
+            queryseq   = str(repr_seqs[qname].seq)
+            ecf_hits   = get_qecf_hits(clustering_results, qname, cluster_id)
 
-        msa, hit_order = generate_msa(all_by_all_hhr_dirpath + qname + '.hhr',
-                                      queryseq, ecf_hits, msa_params)
-        msa_clean = clean_msa(msa)
+            msa, hit_order = generate_msa(all_by_all_hhr_dirpath + qname \
+                                          + '.hhr', queryseq, ecf_hits,
+                                          msa_params)
+            msa_clean = clean_msa(msa)
 
-        # add reprseq name with cluster id to list of hits
-        hit_order = [qname] + hit_order
-        hit_order[0] = hit_order[0] + '_' + str(cluster_id)
+            # add reprseq name with cluster id to list of hits
+            hit_order = [qname] + hit_order
+            hit_order[0] = hit_order[0] + '_' + str(cluster_id)
 
-        if len(hit_order) >= 5:
-            fmsa = open(msa_output_dirpath + 'ecf_' + qname + '_' \
-                        + str(cluster_id) + '.a3m', 'w')
-            for seq, hit_id in zip(msa_clean, hit_order):
-                fmsa.write('>' + hit_id + '\n')
-                fmsa.write(''.join(seq) + '\n')
-            fmsa.close()
+            if len(hit_order) >= 5:
+                fmsa = open(output_a3m_filepath, 'w')
+                for seq, hit_id in zip(msa_clean, hit_order):
+                    fmsa.write('>' + hit_id + '\n')
+                    fmsa.write(''.join(seq) + '\n')
+                fmsa.close()
         show_progress_bar(progress_bar, i)
