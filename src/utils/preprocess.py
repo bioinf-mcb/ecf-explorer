@@ -33,6 +33,7 @@ def setup_dir_tree(input_table_filepath):
 					 'ecf-explorer/intermediate',
 					 'ecf-explorer/intermediate/protein_dfs',
 					 'ecf-explorer/intermediate/qecf_msa',
+					 'ecf-explorer/intermediate/qecf_dfs',
 					 'ecf-explorer/output',
 					 'ecf-explorer/plots', 'ecf-explorer/scripts']:
 		try:
