@@ -95,6 +95,7 @@ def plot_hits(df, color2label, ax_aln, protein_id):
     Returns:
     --------
     """
+    legend_done = []
     for n, hit in enumerate(df.iterrows()):
         if (len(df[df['sname'] == hit[1]['sname']]) > 1):
             lstyle = "dashdot"
@@ -106,6 +107,9 @@ def plot_hits(df, color2label, ax_aln, protein_id):
             color_align = color2label[hit[1]['cluster']]
         ax_aln.plot([hit[1]['qstart'], hit[1]['qend']], [n,n],
         color=color_align, linestyle=lstyle)
+        if hit[1]['cluster'] not in legend_done:
+            ax_aln.text(hit[1]['qstart'], n, hit[1]['cluster'], fontsize=20)
+            legend_done.append(hit[1]['cluster'])
 
 def plot_features(selected_features_data, protein_id, ax_feat, feature_colors):
     """Plot features alignment to the selected protein.
@@ -138,7 +142,7 @@ def plot_features(selected_features_data, protein_id, ax_feat, feature_colors):
             ax_feat.plot([0, 0], [fid, fid], color='white', alpha=1.0)
         # ax_feat.text(0, fid-len(selected_features_data)*0.04,
         ax_feat.text(10, fid+0.01,
-        'PFAM', fontsize=20, color=feature_colors[fid])
+        feature_name, fontsize=20, color=feature_colors[fid])
 
 def plot_alignment_selected(workdir_path, selected_reprseq_data,
     selected_features_data, save_figure=False):
