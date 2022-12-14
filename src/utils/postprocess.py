@@ -60,6 +60,9 @@ def select_reprseqs_to_display(clustering_results, reprseqs_to_display):
     select_reprseq_data = \
     clustering_results[clustering_results['qname'].isin(reprseq_ids)]
 
+    # add display column - this can affect color of display on alignment plots
+    select_reprseq_data['display'] = True
+
     return select_reprseq_data
 
 def load_features_data(workdir_path, features_to_load, sep=','):

@@ -103,8 +103,10 @@ def plot_hits(df, color2label, ax_aln, protein_id):
             lstyle = "solid"
         if protein_id == hit[1]['sname']:
             color_align = 'black'
-        else:
+        elif hit[1]['display'] == True:
             color_align = color2label[hit[1]['cluster']]
+        else:
+             color_align = 'grey'
         ax_aln.plot([hit[1]['qstart'], hit[1]['qend']], [n,n],
         color=color_align, linestyle=lstyle)
         if hit[1]['cluster'] not in legend_done:
