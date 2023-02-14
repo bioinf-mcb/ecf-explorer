@@ -29,9 +29,7 @@ if __name__ == '__main__':
 		rseq2annot = pickle.load(handle)
 
 	# get qnames set from tables
-	qnames = tables['ecf']['qname'].to_list()
-		   + tables['ecod']['qname'].to_list()
-		   + tables['pfam']['qname'].to_list()
+	qnames = tables['ecf']['qname'].to_list() + tables['ecod']['qname'].to_list() + tables['pfam']['qname'].to_list()
 	qnames = list(set(qnames))
 
 	stats_all = {}
