@@ -22,7 +22,7 @@ if __name__ == '__main__':
 	# load dataframes & dicts
 	tables = {}
 	for dbid in ['ecf', 'ecod', 'pfam']:
-		tables[dbid] = pd.read_csv('{}table-{}-part-{}.csv'.format(parts_dir, dbid, i))
+		tables[dbid] = pd.read_csv('{}table-{}-part-{}.csv'.format(parts_dir, dbid, part_id))
 	with open(parts_dir + 'ecf2ecf_cluster.pickle', 'rb') as handle:
 		ecf2ecf_cluster = pickle.load(handle)
 	with open(parts_dir + 'rseq2annot.pickle', 'rb') as handle:
@@ -66,5 +66,5 @@ if __name__ == '__main__':
 
 	# drop df as csv
 	results = pd.DataFrame.from_dict(stats_all, orient='index', columns=columns)
-	results.to_csv('{}ecf-pfam-ecod-part-{}.csv'.format(parts_out_dir, i),
+	results.to_csv('{}ecf-pfam-ecod-part-{}.csv'.format(parts_out_dir, part_id),
 				   header=False, index=False)
