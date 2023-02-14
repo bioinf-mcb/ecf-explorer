@@ -1,3 +1,6 @@
+import pandas as pd
+import numpy as np
+
 def get_mean_number_of_hits_per_region_ecf_clust(regions, table, ecf_clusters):
 	"""Calculate mean number of hits comprising detected ECF region.
 	Assume ECFs from the same cluster count as one hit."""
