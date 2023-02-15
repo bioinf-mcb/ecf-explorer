@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
 	# get qnames set from file
 	# qnames = tables['ecf']['qname'].to_list() + tables['ecod']['qname'].to_list() + tables['pfam']['qname'].to_list()
-	qnames_table = pd.read_csv('{}qnames-part-{}.csv'.format(parts_dir, i))
+	qnames_table = pd.read_csv('{}qnames-part-{}.csv'.format(parts_dir, part_id))
 	qnames = qnames_table['repr.name'].to_list()
 
 	stats_all = {}
