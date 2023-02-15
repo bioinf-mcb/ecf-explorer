@@ -28,9 +28,10 @@ if __name__ == '__main__':
 	with open(parts_dir + 'rseq2annot.pickle', 'rb') as handle:
 		rseq2annot = pickle.load(handle)
 
-	# get qnames set from tables
-	qnames = tables['ecf']['qname'].to_list() + tables['ecod']['qname'].to_list() + tables['pfam']['qname'].to_list()
-	qnames = list(set(qnames))
+	# get qnames set from file
+	# qnames = tables['ecf']['qname'].to_list() + tables['ecod']['qname'].to_list() + tables['pfam']['qname'].to_list()
+	qnames_table = pd.read_csv('{}qnames-part-{}.csv'.format(parts_dir, i))
+	qnames = qnames_table['repr.name'].to_list()
 
 	stats_all = {}
 	cutoffs = [0.5]

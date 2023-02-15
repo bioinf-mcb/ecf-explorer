@@ -23,7 +23,10 @@ def get_mean_number_of_hits_per_region_ecf_clust(regions, table, ecf_clusters):
 				reg_hits.append(ecf_clusters[hit['sname']])
 		hit_per_region.append(len(set(reg_hits)))
 
-	mean_hit_per_region = np.mean(hit_per_region)
+	if hit_per_region:
+		mean_hit_per_region = np.mean(hit_per_region)
+	else:
+		mean_hit_per_region = np.NaN
 
 	return mean_hit_per_region
 
@@ -59,7 +62,10 @@ def get_continuous_regions(table):
 	return regions
 
 def calculate_mean_region_length(regions):
-	return np.mean([len(r) for r in regions])
+	if regions:
+		return np.mean([len(r) for r in regions])
+	else:
+		return np.NaN
 
 def compare_two_region_sets(regions1, regions2, cutoff):
 	"""Compare two sets of regions."""
