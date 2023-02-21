@@ -252,6 +252,7 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 
 	# add % of qlen occupied by any db hit
 	annot_region_len = compute_overlap_all_regions(regions_all, qlen)
+	venn_stats = calculate_venn_stats(regions_matched)
 
 	# calculate number of unmatched regions for each db - no longer in use
 	# regions_unmatched = calculate_number_of_unmatched_regions(regions_matched)
