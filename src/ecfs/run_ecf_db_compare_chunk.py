@@ -50,15 +50,18 @@ if __name__ == '__main__':
 		# add stats to dict
 		stats_all[i] = stats
 
-	columns = ['qname', 'n-ecf', 'n-ecf-unmatched',
+	columns = ['qname', 'n-ecf',
 			   'ecf-without-pfam', 'ecf-without-ecod',
 			   'ecf-hit-per-reg', 'ecf-hit-per-reg-clust', 'mean-len-ecf-region',
-			   'n-ecod', 'n-ecod-unmatched',
+			   'n-ecod',
 			   'ecod-without-pfam', 'ecod-without-ecf',
 			   'ecod-hit-per-reg', 'mean-len-ecod-region',
-			   'n-pfam', 'n-pfam-unmatched',
+			   'n-pfam',
 			   'pfam-without-ecf', 'pfam-without-ecod',
 			   'pfam-hit-per-reg', 'mean-len-pfam-region',
+			   'venn-ecf', 'venn-ecf+pfam', 'venn-ecf+ecod', 'venn-ecf+pfam+ecod',
+			   'venn-pfam', 'venn-pfam+ecod',
+			   'venn-ecod',
 			   'annot-len']
 	for pair in ['reg-ecf-pfam-', 'reg-ecf-ecod-', 'reg-ecod-pfam-']:
 		for cut in cutoffs:

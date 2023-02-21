@@ -16,7 +16,7 @@ def get_mean_number_of_hits_per_region_ecf_clust(regions, table, ecf_clusters):
 			if hid in processed_hits:
 				continue
 			else:
-				hit_pos = set(range(hit['qstart'], hit['qend']))
+				hit_pos = set(range(hit['qstart'], hit['qend']+1))
 			if reg_pos.intersection(hit_pos):
 				processed_hits.append(hid)
 
@@ -45,7 +45,7 @@ def get_continuous_regions(table):
 	positions = []
 	regions = []
 	for hid, hit in table.iterrows():
-		positions += list(range(hit['qstart'], hit['qend']))
+		positions += list(range(hit['qstart'], hit['qend']+1))
 	positions = sorted(list(set(positions)))
 
 	region = []
@@ -103,14 +103,14 @@ def compute_overlap_all_regions(regions_all, qlen):
 
 	return round(len(regions_concat) / qlen, 3)
 
-def update_regions_match(regions_matched, match_status):
+def update_regions_match(regions_matched, match_status, update_with_db):
 	"""Update status of matched regions for a given db."""
 	regions_matched_updated = []
 	for reg_stat, reg_upd in zip(regions_matched, match_status):
+		upd_region = reg_stat
 		if reg_upd == 1:
-			regions_matched_updated.append(reg_upd)
-		else:
-			regions_matched_updated.append(reg_stat)
+			upd_region[update_with_db] = reg_upd
+		regions_matched_updated.append(upd_region)
 
 	return regions_matched_updated
 
@@ -123,6 +123,33 @@ def calculate_number_of_unmatched_regions(regions_matched):
 			regions_unmatched[db] = np.NaN
 
 	return regions_unmatched
+
+def calculate_venn_stats(regions_matched):
+	venn_stats = {'ecf':0, 'ecf+pfam':0, 'ecf+ecod':0, 'ecf+pfam+ecod':0,
+				  'pfam':0, 'pfam+ecod':0,
+				  'ecod':0}
+
+	for reg in regions_matched['ecf']:
+		if (reg['pfam'] == 0 and reg['ecod'] == 0):
+			venn_stats['ecf'] += 1
+		elif (reg['pfam'] > 0 and reg['ecod'] == 0):
+			venn_stats['ecf+pfam'] += 1
+		elif (reg['pfam'] == 0 and reg['ecod'] > 0):
+			venn_stats['ecf+ecod'] += 1
+		elif (reg['pfam'] > 0 and reg['ecod'] > 0):
+			venn_stats['ecf+pfam+ecod'] += 1
+
+	for reg in regions_matched['pfam']:
+		if (reg['ecf'] == 0 and reg['ecod'] == 0):
+			venn_stats['pfam'] += 1
+		elif (reg['ecf'] == 0 and reg['ecod'] > 0):
+			venn_stats['pfam+ecod'] += 1
+
+	for reg in regions_matched['ecod']:
+		if (reg['ecf'] == 0 and reg['pfam'] == 0):
+			venn_stats['ecod'] += 1
+
+	return venn_stats
 
 def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 
@@ -156,9 +183,9 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 		qlen = 0.0
 
 	regions_comparisons = {}
-	regions_matched = {'ecf':[0 for i in range(len(ecf_regions))],
-					   'ecod':[0 for i in range(len(ecod_regions))],
-					   'pfam':[0 for i in range(len(pfam_regions))]}
+	regions_matched = {'ecf':[{'pfam':0, 'ecod':0} for i in range(len(ecf_regions))],
+					   'ecod':[{'pfam':0, 'ecf':0} for i in range(len(ecod_regions))],
+					   'pfam':[{'ecf':0, 'ecod':0} for i in range(len(pfam_regions))]}
 	region_pairs_matching = {}
 	for cutoff in cutoffs:
 		if (ecf_regions and pfam_regions):
@@ -167,8 +194,8 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 																							cutoff=cutoff)
 			### !!! WARNING this works only for single cutoff threshold
 			### !!! WARNING if more selected the data will be overwritten and reflect last cutoff
-			regions_matched['ecf'] = update_regions_match(regions_matched['ecf'], match_status[0])
-			regions_matched['pfam'] = update_regions_match(regions_matched['pfam'], match_status[1])
+			regions_matched['ecf'] = update_regions_match(regions_matched['ecf'], match_status[0], 'pfam')
+			regions_matched['pfam'] = update_regions_match(regions_matched['pfam'], match_status[1], 'ecf')
 			region_pairs_matching['ecf-without-pfam'] = match_status[2]
 			region_pairs_matching['pfam-without-ecf'] = match_status[3]
 		else:
@@ -187,8 +214,8 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 			regions_comparisons['reg_ecf_ecod-{}'.format(cutoff)], match_status = compare_two_region_sets(ecf_regions,
 																							ecod_regions,
 																							cutoff=cutoff)
-			regions_matched['ecf'] = update_regions_match(regions_matched['ecf'], match_status[0])
-			regions_matched['ecod'] = update_regions_match(regions_matched['ecod'], match_status[1])
+			regions_matched['ecf'] = update_regions_match(regions_matched['ecf'], match_status[0], 'ecod')
+			regions_matched['ecod'] = update_regions_match(regions_matched['ecod'], match_status[1], 'ecf')
 			region_pairs_matching['ecf-without-ecod'] = match_status[2]
 			region_pairs_matching['ecod-without-ecf'] = match_status[3]
 		else:
@@ -207,8 +234,8 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 			regions_comparisons['reg_ecod_pfam-{}'.format(cutoff)], match_status = compare_two_region_sets(ecod_regions,
 																							 pfam_regions,
 																							 cutoff=cutoff)
-			regions_matched['ecod'] = update_regions_match(regions_matched['ecod'], match_status[0])
-			regions_matched['pfam'] = update_regions_match(regions_matched['pfam'], match_status[1])
+			regions_matched['ecod'] = update_regions_match(regions_matched['ecod'], match_status[0], 'pfam')
+			regions_matched['pfam'] = update_regions_match(regions_matched['pfam'], match_status[1], 'ecod')
 			region_pairs_matching['ecod-without-pfam'] = match_status[2]
 			region_pairs_matching['pfam-without-ecod'] = match_status[3]
 		else:
@@ -226,18 +253,21 @@ def get_stats_reprseq(qname, tables, cutoffs, ecf2ecf_cluster):
 	# add % of qlen occupied by any db hit
 	annot_region_len = compute_overlap_all_regions(regions_all, qlen)
 
-	# calculate number of unmatched regions for each db
-	regions_unmatched = calculate_number_of_unmatched_regions(regions_matched)
+	# calculate number of unmatched regions for each db - no longer in use
+	# regions_unmatched = calculate_number_of_unmatched_regions(regions_matched)
 
-	stats = [qname, n_ecf, regions_unmatched['ecf'],
+	stats = [qname, n_ecf,
 			 region_pairs_matching['ecf-without-pfam'], region_pairs_matching['ecf-without-ecod'],
 			 ecf_hit_per_reg, ecf_hit_per_reg_clust, mean_len_ecf_region,
-			 n_ecod, regions_unmatched['ecod'],
+			 n_ecod,
 			 region_pairs_matching['ecod-without-pfam'], region_pairs_matching['ecod-without-ecf'],
 			 ecod_hit_per_reg, mean_len_ecod_region,
-			 n_pfam, regions_unmatched['pfam'],
+			 n_pfam,
 			 region_pairs_matching['pfam-without-ecf'], region_pairs_matching['pfam-without-ecod'],
 			 pfam_hit_per_reg, mean_len_pfam_region,
+			 venn_stats['ecf'], venn_stats['ecf+pfam'], venn_stats['ecf+ecod'], venn_stats['ecf+pfam+ecod'],
+			 venn_stats['pfam'], venn_stats['pfam+ecod'],
+			 venn_stats['ecod'],
 			 annot_region_len]
 	for pair in ['reg_ecf_pfam-', 'reg_ecf_ecod-', 'reg_ecod_pfam-']:
 		for cut in cutoffs:
