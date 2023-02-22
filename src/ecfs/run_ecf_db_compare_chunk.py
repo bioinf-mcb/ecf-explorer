@@ -7,6 +7,7 @@ if __name__ == '__main__':
 	parts_dir = sys.argv[1]
 	parts_out_dir = sys.argv[2]
 	part_id = sys.argv[3]
+	cutoff = float(sys.argv[4])
 
 	sys.path.append(sys.argv[4])
 	from ecfs.ecf_dbs_compare import get_mean_number_of_hits_per_region_ecf_clust
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 	qnames = qnames_table['repr.name'].to_list()
 
 	stats_all = {}
-	cutoffs = [0.5]
+	cutoffs = [cutoff]
 	for i, qname in enumerate(qnames):
 		tables_qname = {}
 		# filter table
