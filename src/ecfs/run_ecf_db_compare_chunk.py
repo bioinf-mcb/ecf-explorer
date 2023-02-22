@@ -9,7 +9,7 @@ if __name__ == '__main__':
 	part_id = sys.argv[3]
 	cutoff = float(sys.argv[4])
 
-	sys.path.append(sys.argv[4])
+	sys.path.append(sys.argv[5])
 	from ecfs.ecf_dbs_compare import get_mean_number_of_hits_per_region_ecf_clust
 	from ecfs.ecf_dbs_compare import get_mean_number_of_hits_per_region
 	from ecfs.ecf_dbs_compare import get_continuous_regions
