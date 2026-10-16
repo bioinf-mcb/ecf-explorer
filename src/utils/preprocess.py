@@ -36,7 +36,7 @@ def setup_dir_tree(input_table_filepath):
 					 'ecf-explorer/intermediate/qecf_dfs',
 					 'ecf-explorer/intermediate/qecf_all_by_all',
 					 'ecf-explorer/intermediate/network',
-					 'ecf-explorer/output',
+					 'ecf-explorer/output', 'ecf-explorer/output/prot-families', 'ecf-explorer/output/prot-families/representative',
 					 'ecf-explorer/plots', 'ecf-explorer/scripts']:
 		try:
 			os.mkdir(table_dirpath + '/' + dir_name)

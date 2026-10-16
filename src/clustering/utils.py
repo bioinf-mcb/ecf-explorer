@@ -20,7 +20,7 @@ def split_dataset_df_into_single_proteins(workdir_path):
         call('rm  ' + dir_path_save + '*.*', shell=True)
     # load data
     dataset_df = pd.read_csv(workdir_path \
-    + '/ecf-explorer/intermediate/table-hhr_filtered.txt')
+    + '/ecf-explorer/intermediate/table-rseq-hhr_filtered.txt')
     # groupby reprseq and save
     for prot_id, prot_df in dataset_df.groupby('qname'):
         prot_df.to_csv(dir_path_save + prot_id + '.txt', index=False)
@@ -57,7 +57,7 @@ def create_bash_script_to_run_clustering(workdir_path, ecf_env_path,
     cmd = '#!/bin/bash\n\n'
     cmd += 'FILE=$(basename "${1}")\nFILE=${FILE%.*}\n'
     cmd += 'source ' + ecf_env_path + '/bin/activate\n'
-    cmd += 'python3 ' + ecf_env_path \
+    cmd += 'python3 ' + '/'.join(ecf_env_path.split('/')[:-2]) \
     + '/ecf-explorer/src/ecfs/run_clustering_single_protein.py ${1} ' \
     + str(dbscan_params['eps']) + ' ' + str(dbscan_params['min_samples']) \
     + ' ' + lib_ecf_path + '\n'
@@ -86,12 +86,13 @@ def run_clustering_with_bash(workdir_path, n_cores):
     protein_df_dirpath = workdir_path + '/ecf-explorer/intermediate/protein_dfs'
 
     # set execute mode
-    call('chmod a+x ' + script_filepath, shell=True)
+    #call('chmod a+x ' + script_filepath, shell=True)
 
     # run script
     run_cmd = 'nohup find {} -name "reprseq*.txt" | xargs -P {} -n 1 {} \
     &'.format(protein_df_dirpath, n_cores, script_filepath)
-    call(run_cmd, shell=True)
+    print(run_cmd)
+    #call(run_cmd, shell=True)
 
 def concatenate_clustering_results(workdir_path):
     """Check if all proteins were processed with clustering and if yes then

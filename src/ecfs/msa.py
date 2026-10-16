@@ -66,7 +66,10 @@ def generate_msa(hhr_file, queryseq, hits, msa_params):
     """
     fasta     = [queryseq]
     hit_order = []
-
+    try:
+        HHOutputParser(alignments=True).parse_file(hhr_file)
+    except:
+        print('Error in file: ' + hhr_file)
     for hit in HHOutputParser(alignments=True).parse_file(hhr_file):
         hit_id = '{}_{}_{}'.format(hit.id, hit.qstart, hit.qend)
         if not hit_id in hits:
@@ -147,6 +150,26 @@ def clean_msa(msa):
     msa_clean = msa_clean.T
 
     return msa_clean
+
+def trim_alignment(fasta, qecf_start, qecf_end, qecf_span):
+    """Trim alignment according to calculated qECF start and stop positions"""
+
+    # get query sequence inside (qecf_start, qecf_end) range
+    query_seq_trim = fasta[0][qecf_start-1:qecf_end]
+    #print(query_seq_trim)
+
+    # check if gaps inside, if yes then count them
+    search_size = query_seq_trim.count('-')
+
+    # extend considered region until the len of ungapped query seq is equal to qecf_span
+    while(len(fasta[0][qecf_start-1:qecf_end+search_size].replace('-', '')) < qecf_span):
+        if len(fasta[0]) > qecf_end+search_size:
+            search_size += 1
+        else:
+            break
+
+    # trim the alignment considering gaps in query sequence
+    return [seq[qecf_start-1:qecf_end+search_size] for seq in fasta]
 
 def create_progress_bar(clustering_stats):
     """Create and print progress bar basing on number of items to process.
@@ -230,8 +253,11 @@ def save_qecf_as_msa(workdir_path, clustering_stats, clustering_results,
     for i, qecf in clustering_stats.iterrows():
         qname      = qecf['qname']
         cluster_id = qecf['cluster']
+        qecf_start = qecf['qecf_start']
+        qecf_end   = qecf['qecf_end']
+        qecf_span  = qecf['qecf_span']
         output_a3m_filepath = msa_output_dirpath + 'ecf_' + qname + '_' \
-                              + str(cluster_id) + '.a3m'
+                              + str(cluster_id) + '.fasta'
         # check if file already processed
         if not exists(output_a3m_filepath):
             queryseq   = str(repr_seqs[qname].seq)
@@ -240,7 +266,8 @@ def save_qecf_as_msa(workdir_path, clustering_stats, clustering_results,
             msa, hit_order = generate_msa(all_by_all_hhr_dirpath + qname \
                                           + '.hhr', queryseq, ecf_hits,
                                           msa_params)
-            msa_clean = clean_msa(msa)
+            #msa_clean = clean_msa(msa)
+            msa_clean = trim_alignment(msa, qecf_start, qecf_end, qecf_span)
 
             # add reprseq name with cluster id to list of hits
             hit_order = [qname] + hit_order
@@ -252,4 +279,4 @@ def save_qecf_as_msa(workdir_path, clustering_stats, clustering_results,
                     fmsa.write('>' + hit_id + '\n')
                     fmsa.write(''.join(seq) + '\n')
                 fmsa.close()
-        show_progress_bar(progress_bar, i)
+        #show_progress_bar(progress_bar, i)
